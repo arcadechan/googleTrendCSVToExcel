@@ -1,0 +1,1 @@
+A simple python script to merge X amount of Google tred CSVs into one XLSX for custom reporting.
