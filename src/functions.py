@@ -1,13 +1,18 @@
-# import os
 import glob
+from io import TextIOWrapper
 import pandas as pd
-from time import sleep
+from time import sleep, clock
+from datetime import datetime
 
-def test():
-    print('test')
+def line_break():
+    print('-'*50)
+    print()
 
 def prompt(cwd):
-    print("You've started the script in the following directory.: " + cwd)
+    line_break()
+    print("You've started the script in the following directory: ")
+    print('> ' + cwd)
+    print()
     response = input('Does this look correct? Yes (Y), No (N)? ').lower()
 
     if response == 'y':
@@ -19,8 +24,8 @@ def prompt(cwd):
     else:
         print('I don\'t  recognize that response. Try again!')
         print()
-        sleep(2)
-        prompt(cwd)
+        sleep(1)
+        return prompt(cwd)
 
 def find(list, needle):
     for index in range(len(list)):
@@ -29,6 +34,7 @@ def find(list, needle):
     return -1
 
 def run(cwd):
+    start_time = clock()
     extension = 'csv'
     all_filenames = [i for i in glob.glob('*.{}'.format(extension))]
     file_count = len(all_filenames)
@@ -37,6 +43,7 @@ def run(cwd):
         print('Found the following files:')
         for file in all_filenames:
             print(file)
+        print()
 
         to_excel_array = []
         excel_headers = []
@@ -73,6 +80,14 @@ def run(cwd):
                 count = count + 1
 
         df = pd.DataFrame(to_excel_array, columns=excel_headers)
+        df['Week'] = pd.to_datetime(df['Week'])
+
+        for column in excel_headers:
+            if column.lower() == 'week':
+                continue
+
+            df[column] = pd.to_numeric(df[column])
+       
         writer = pd.ExcelWriter(cwd + '\Trend Data.xlsx')
         df.to_excel(writer, header = excel_headers, sheet_name='Sheet 1', index=False)
 
@@ -83,6 +98,7 @@ def run(cwd):
 
         writer.save()
         print('Proccess complete! Merged ' + str(file_count) + ' total files')
+        print('====== Finished in %s seconds ======' % (clock() - start_time))
     elif len(all_filenames) == 1:
         print('I only found one file. I need at least two to merge their contents!')
     else:
